@@ -22,7 +22,6 @@ import org.apache.paimon.data.BinaryRow;
 import org.apache.paimon.data.BinaryString;
 import org.apache.paimon.data.GenericRow;
 import org.apache.paimon.options.MemorySize;
-import org.apache.paimon.sort.BinaryExternalSortBuffer;
 import org.apache.paimon.types.BigIntType;
 import org.apache.paimon.types.DataField;
 import org.apache.paimon.types.RowType;
@@ -57,14 +56,15 @@ public class SortOperatorTest {
 
         SortOperator sortOperator =
                 new SortOperator(
-                        keyRowType,
-                        rowType,
-                        MemorySize.parse("10 mb").getBytes(),
-                        (int) MemorySize.parse("16 kb").getBytes(),
-                        128,
-                        "lz4",
-                        1,
-                        MemorySize.MAX_VALUE) {};
+                        new SortBufferManager(
+                                keyRowType,
+                                rowType,
+                                MemorySize.parse("10 mb").getBytes(),
+                                (int) MemorySize.parse("16 kb").getBytes(),
+                                128,
+                                "lz4",
+                                MemorySize.MAX_VALUE),
+                        1) {};
 
         OneInputStreamOperatorTestHarness harness = createTestHarness(sortOperator);
         harness.open();
@@ -78,8 +78,8 @@ public class SortOperatorTest {
                                     BinaryString.fromString(""))));
         }
 
-        BinaryExternalSortBuffer externalSortBuffer = sortOperator.getBuffer();
-        MutableObjectIterator<BinaryRow> iterator = externalSortBuffer.sortedIterator();
+        MutableObjectIterator<BinaryRow> iterator =
+                sortOperator.getBufferManager().sortedIterator();
         BinaryRow row;
         BinaryRow reuse = new BinaryRow(3);
         long i = 1;
@@ -106,14 +106,15 @@ public class SortOperatorTest {
 
         SortOperator sortOperator =
                 new SortOperator(
-                        keyRowType,
-                        rowType,
-                        MemorySize.parse("10 mb").getBytes(),
-                        (int) MemorySize.parse("16 kb").getBytes(),
-                        128,
-                        "lz4",
-                        1,
-                        MemorySize.MAX_VALUE) {};
+                        new SortBufferManager(
+                                keyRowType,
+                                rowType,
+                                MemorySize.parse("10 mb").getBytes(),
+                                (int) MemorySize.parse("16 kb").getBytes(),
+                                128,
+                                "lz4",
+                                MemorySize.MAX_VALUE),
+                        1) {};
         OneInputStreamOperatorTestHarness harness = createTestHarness(sortOperator);
         harness.open();
         File[] files = harness.getEnvironment().getIOManager().getSpillingDirectories();

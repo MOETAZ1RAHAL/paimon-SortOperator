@@ -156,14 +156,15 @@ public class SortUtils {
                             "LOCAL SORT",
                             internalRowType,
                             new SortOperator(
-                                    sortKeyType,
-                                    longRowType,
-                                    options.writeBufferSize(),
-                                    options.pageSize(),
-                                    options.localSortMaxNumFileHandles(),
-                                    options.spillCompression(),
-                                    sinkParallelism,
-                                    options.writeBufferSpillDiskSize()))
+                                    new SortBufferManager(
+                                            sortKeyType,
+                                            longRowType,
+                                            options.writeBufferSize(),
+                                            options.pageSize(),
+                                            options.localSortMaxNumFileHandles(),
+                                            options.spillCompression(),
+                                            options.writeBufferSpillDiskSize()),
+                                    sinkParallelism))
                     .setParallelism(sinkParallelism)
                     // remove the key column from every row
                     .map(
